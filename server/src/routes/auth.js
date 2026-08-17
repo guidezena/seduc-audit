@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db.js';
 import { verifyPassword, signToken } from '../auth.js';
+import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
 
@@ -29,6 +30,10 @@ router.post('/login', (req, res) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
   res.json({ ok: true });
+});
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
 });
 
 export default router;
