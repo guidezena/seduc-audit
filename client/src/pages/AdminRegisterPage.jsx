@@ -42,6 +42,10 @@ export default function AdminRegisterPage() {
       setConfirmPassword('');
       setRole('user');
     } catch (err) {
+      if (err.status === 401) {
+        navigate('/login');
+        return;
+      }
       setError(err.message);
     }
   }

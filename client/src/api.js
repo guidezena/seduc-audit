@@ -1,5 +1,21 @@
 const BASE = '/api';
 
+const ERROR_MESSAGES_PT = {
+  'Invalid credentials': 'Credenciais inválidas',
+  'Username already exists': 'Nome de usuário já existe',
+  'Password must be at least 8 characters': 'A senha deve ter pelo menos 8 caracteres',
+  'Not authenticated': 'Não autenticado',
+  'Username, password and role are required': 'Usuário, senha e papel são obrigatórios',
+  'Role must be "admin" or "user"': 'O papel deve ser "admin" ou "user"',
+  'Username and password are required': 'Usuário e senha são obrigatórios',
+  'Admin access required': 'Acesso de administrador necessário',
+  'Internal server error': 'Erro interno do servidor',
+};
+
+function translate(message) {
+  return ERROR_MESSAGES_PT[message] || message;
+}
+
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     credentials: 'include',
@@ -8,7 +24,9 @@ async function request(path, options = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || 'Request failed');
+    const err = new Error(translate(data.error) || 'Request failed');
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
