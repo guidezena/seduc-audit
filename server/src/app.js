@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
 
 export const app = express();
 
@@ -12,3 +13,4 @@ app.use(cookieParser());
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.use('/api', authRoutes);
+app.use('/api', userRoutes);
