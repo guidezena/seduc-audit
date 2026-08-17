@@ -9,6 +9,7 @@ npm install
 npm install --prefix server
 npm install --prefix client
 cp server/.env.example server/.env
+# Edit server/.env: set JWT_SECRET to a long random value and change ADMIN_PASS from the default.
 npm run seed
 npm run dev
 ```
