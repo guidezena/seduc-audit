@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, listUsers, registerUser } from '../api.js';
-import { UserIcon, LockIcon, ShieldIcon, PlusIcon, EyeIcon } from '../icons.jsx';
+import { getMe, listUsers, registerUser, updateUser } from '../api.js';
+import { UserIcon, LockIcon, ShieldIcon, PlusIcon, EyeIcon, PencilIcon } from '../icons.jsx';
 import Modal from '../components/Modal.jsx';
 
 export default function AdminUsersPage() {
@@ -16,6 +16,11 @@ export default function AdminUsersPage() {
   const [createRole, setCreateRole] = useState('user');
   const [createError, setCreateError] = useState('');
   const [viewingUser, setViewingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUsername, setEditUsername] = useState('');
+  const [editRole, setEditRole] = useState('user');
+  const [editPassword, setEditPassword] = useState('');
+  const [editError, setEditError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,6 +80,38 @@ export default function AdminUsersPage() {
         return;
       }
       setCreateError(err.message);
+    }
+  }
+
+  function openEditModal(user) {
+    setEditingUser(user);
+    setEditUsername(user.username);
+    setEditRole(user.role);
+    setEditPassword('');
+    setEditError('');
+  }
+
+  async function handleEditSubmit(e) {
+    e.preventDefault();
+    setEditError('');
+    if (editPassword && editPassword.length < 8) {
+      setEditError('A senha deve ter pelo menos 8 caracteres');
+      return;
+    }
+    const updates = { username: editUsername, role: editRole };
+    if (editPassword) {
+      updates.password = editPassword;
+    }
+    try {
+      await updateUser(editingUser.id, updates);
+      setEditingUser(null);
+      await reloadUsers();
+    } catch (err) {
+      if (err.status === 401) {
+        navigate('/login');
+        return;
+      }
+      setEditError(err.message);
     }
   }
 
@@ -138,6 +175,14 @@ export default function AdminUsersPage() {
                             aria-label={`Ver ${user.username}`}
                           >
                             <EyeIcon />
+                          </button>
+                          <button
+                            className="icon-button"
+                            type="button"
+                            onClick={() => openEditModal(user)}
+                            aria-label={`Editar ${user.username}`}
+                          >
+                            <PencilIcon />
                           </button>
                         </div>
                       </td>
@@ -265,6 +310,80 @@ export default function AdminUsersPage() {
           <p>
             <strong>Criado em:</strong> {viewingUser.created_at}
           </p>
+        </Modal>
+      )}
+
+      {editingUser && (
+        <Modal title="Editar usuário" onClose={() => setEditingUser(null)}>
+          <form onSubmit={handleEditSubmit} className="auth-fields">
+            {editError && (
+              <p className="auth-alert" role="alert">
+                {editError}
+              </p>
+            )}
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="edit-username">
+                Usuário
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <UserIcon />
+                </span>
+                <input
+                  id="edit-username"
+                  placeholder="Usuário"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="edit-role">
+                Papel
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <ShieldIcon />
+                </span>
+                <select id="edit-role" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
+            </div>
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="edit-password">
+                Nova senha
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <LockIcon />
+                </span>
+                <input
+                  id="edit-password"
+                  type="password"
+                  placeholder="Nova senha (opcional)"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  minLength={8}
+                />
+              </div>
+            </div>
+            <p className="modal-hint">Deixe a senha em branco para mantê-la.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="auth-button auth-button--secondary"
+                onClick={() => setEditingUser(null)}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="auth-button">
+                Salvar
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </div>
