@@ -156,12 +156,15 @@ button) so styling stays consistent:
    `updateUser`, sending only `username`/`role` always and `password` only
    if non-empty.
 
-**Delete** does not use the shared modal — it's a lighter native-feeling
-confirm: clicking the trash icon opens a small confirmation panel ("Excluir
-o usuário "carol"? Essa ação não pode ser desfeita.") with
-Cancelar/Excluir buttons. On confirm, calls `deleteUser`; server-side
-blocks (self-delete, last-admin) surface as an inline error in that same
-confirm panel rather than closing it, so the admin sees why it failed.
+**Delete** reuses the same shared `Modal` component (via its optional
+`footer` prop) rather than a bespoke confirm component — building a second
+overlay/backdrop/keyboard-escape implementation just to feel "lighter"
+would duplicate the modal's existing logic for no user-facing gain. It
+stays visually compact: a short warning line ("Excluir o usuário "carol"?
+Essa ação não pode ser desfeita.") and a Cancelar/Excluir footer, no
+multi-field form. On confirm, calls `deleteUser`; server-side blocks
+(self-delete, last-admin) surface as an inline error inside the same modal
+rather than closing it, so the admin sees why it failed.
 
 ### Icons
 
