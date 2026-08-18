@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, listUsers, registerUser, updateUser } from '../api.js';
-import { UserIcon, LockIcon, ShieldIcon, PlusIcon, EyeIcon, PencilIcon } from '../icons.jsx';
+import { getMe, listUsers, registerUser, updateUser, deleteUser } from '../api.js';
+import { UserIcon, LockIcon, ShieldIcon, PlusIcon, EyeIcon, PencilIcon, TrashIcon } from '../icons.jsx';
 import Modal from '../components/Modal.jsx';
 
 export default function AdminUsersPage() {
@@ -21,6 +21,8 @@ export default function AdminUsersPage() {
   const [editRole, setEditRole] = useState('user');
   const [editPassword, setEditPassword] = useState('');
   const [editError, setEditError] = useState('');
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -115,6 +117,26 @@ export default function AdminUsersPage() {
     }
   }
 
+  function openDeleteConfirm(user) {
+    setDeletingUser(user);
+    setDeleteError('');
+  }
+
+  async function handleDeleteConfirm() {
+    setDeleteError('');
+    try {
+      await deleteUser(deletingUser.id);
+      setDeletingUser(null);
+      await reloadUsers();
+    } catch (err) {
+      if (err.status === 401) {
+        navigate('/login');
+        return;
+      }
+      setDeleteError(err.message);
+    }
+  }
+
   if (checking) {
     return (
       <div className="auth-page">
@@ -183,6 +205,14 @@ export default function AdminUsersPage() {
                             aria-label={`Editar ${user.username}`}
                           >
                             <PencilIcon />
+                          </button>
+                          <button
+                            className="icon-button icon-button--danger"
+                            type="button"
+                            onClick={() => openDeleteConfirm(user)}
+                            aria-label={`Excluir ${user.username}`}
+                          >
+                            <TrashIcon />
                           </button>
                         </div>
                       </td>
@@ -384,6 +414,34 @@ export default function AdminUsersPage() {
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {deletingUser && (
+        <Modal
+          title="Excluir usuário"
+          onClose={() => setDeletingUser(null)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="auth-button auth-button--secondary"
+                onClick={() => setDeletingUser(null)}
+              >
+                Cancelar
+              </button>
+              <button type="button" className="auth-button auth-button--danger" onClick={handleDeleteConfirm}>
+                Excluir
+              </button>
+            </>
+          }
+        >
+          {deleteError && (
+            <p className="auth-alert" role="alert">
+              {deleteError}
+            </p>
+          )}
+          <p>Excluir o usuário "{deletingUser.username}"? Essa ação não pode ser desfeita.</p>
         </Modal>
       )}
     </div>
