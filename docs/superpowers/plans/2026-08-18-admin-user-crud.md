@@ -265,24 +265,33 @@ curl -s -i -b /tmp/crud-cookies.txt -X DELETE http://localhost:4000/api/users/1
 
 Expected: HTTP `400`, `{"error":"You cannot delete your own account"}`.
 
-- [ ] **Step 3: Verify the last-admin delete guard**
+- [ ] **Step 3: Verify the last-admin delete guard using two concurrent sessions**
 
-With only the seeded `admin` as an admin (from Task 2's Step 4, `patchtest` should already be role `user`):
+This guard only rejects a *non-self* delete, which requires the deleter's session to belong to someone other than the sole remaining admin. Since this app doesn't revoke JWTs server-side on delete, a second admin's cookie jar stays "valid" even after that admin is removed from the database — use that to construct the scenario with plain curl:
+
+With only the seeded `admin` (id `1`) as an admin (from Task 2's Step 4, `patchtest` should already be role `user`):
 
 ```bash
 curl -s -X POST http://localhost:4000/api/register -b /tmp/crud-cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"username":"secondadmin","password":"password123","role":"admin"}'
 ```
-Note the returned `id` (call it `<ID2>`), then attempt to delete the *original* seeded admin (id `1`) — this should now succeed since a second admin exists:
+Note the returned `id` (call it `<ID2>`). Log `secondadmin` in to a **second, separate cookie jar**:
+```bash
+curl -s -c /tmp/crud-cookies-2.txt -X POST http://localhost:4000/api/login \
+  -H "Content-Type: application/json" -d '{"username":"secondadmin","password":"password123"}' > /dev/null
+```
+Using the *original* admin's session (cookie jar 1), delete `secondadmin` (`<ID2>`) — two admins exist at this point, so this should succeed:
 ```bash
 curl -s -i -b /tmp/crud-cookies.txt -X DELETE http://localhost:4000/api/users/<ID2>
 ```
-Wait — deleting `<ID2>` (the second admin) while `admin` (id 1) still exists should succeed (more than one admin existed before this delete). Verify:
-
 Expected: HTTP `200`, `{"ok":true}`.
 
-Now only `admin` (id 1) remains as an admin. Log in as a *different* session isn't available via curl easily, so instead verify the guard indirectly: attempting to delete id `1` while logged in as id `1` still correctly hits the self-delete guard from Step 2 (already verified) — the last-admin guard's own logic (the `adminCount <= 1` check) was exercised as `false` in this Step 3 (count was 2 when `<ID2>` was deleted, so the delete was allowed) and is exercised as `true` in Task 2 Step 4's equivalent PATCH check. This confirms the shared counting logic; the DELETE-specific guard combined with self-delete is inherently untestable via curl alone (you cannot be logged in as an admin you are not, to delete the one that's left), so it's covered by code review and by Task 8's later browser-based multi-admin scenario instead.
+Now only `admin` (id `1`) remains as an admin — but `secondadmin`'s cookie jar (2) still holds a valid, unrevoked JWT. Use it to attempt deleting the *original* admin (id `1`), a genuinely non-self delete (the JWT's `id` is `<ID2>`, the target is `1`) that hits the last-admin guard rather than the self-delete guard:
+```bash
+curl -s -i -b /tmp/crud-cookies-2.txt -X DELETE http://localhost:4000/api/users/1
+```
+Expected: HTTP `400`, `{"error":"Cannot delete the last remaining admin"}`.
 
 - [ ] **Step 4: Verify not-found case**
 
