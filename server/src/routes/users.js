@@ -41,4 +41,9 @@ router.post('/register', requireAuth, requireAdmin, (req, res) => {
   }
 });
 
+router.get('/users', requireAuth, requireAdmin, (req, res) => {
+  const users = db.prepare('SELECT id, username, role, created_at FROM users ORDER BY id ASC').all();
+  res.json(users);
+});
+
 export default router;
