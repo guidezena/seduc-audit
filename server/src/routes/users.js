@@ -104,4 +104,28 @@ router.patch('/users/:id', requireAuth, requireAdmin, (req, res) => {
   res.json({ id, username: nextUsername, role: nextRole });
 });
 
+router.delete('/users/:id', requireAuth, requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (id === req.user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own account' });
+  }
+
+  if (existing.role === 'admin') {
+    const adminCount = db
+      .prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'")
+      .get().count;
+    if (adminCount <= 1) {
+      return res.status(400).json({ error: 'Cannot delete the last remaining admin' });
+    }
+  }
+
+  db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
 export default router;
