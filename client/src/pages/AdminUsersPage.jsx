@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMe, listUsers, registerUser } from '../api.js';
-import { UserIcon, LockIcon, ShieldIcon, PlusIcon } from '../icons.jsx';
+import { UserIcon, LockIcon, ShieldIcon, PlusIcon, EyeIcon } from '../icons.jsx';
 import Modal from '../components/Modal.jsx';
 
 export default function AdminUsersPage() {
@@ -15,6 +15,7 @@ export default function AdminUsersPage() {
   const [createConfirmPassword, setCreateConfirmPassword] = useState('');
   const [createRole, setCreateRole] = useState('user');
   const [createError, setCreateError] = useState('');
+  const [viewingUser, setViewingUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -128,7 +129,18 @@ export default function AdminUsersPage() {
                       <td>{user.username}</td>
                       <td>{user.role}</td>
                       <td>{user.created_at}</td>
-                      <td></td>
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            className="icon-button"
+                            type="button"
+                            onClick={() => setViewingUser(user)}
+                            aria-label={`Ver ${user.username}`}
+                          >
+                            <EyeIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -228,6 +240,31 @@ export default function AdminUsersPage() {
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {viewingUser && (
+        <Modal
+          title="Detalhes do usuário"
+          onClose={() => setViewingUser(null)}
+          footer={
+            <button type="button" className="auth-button" onClick={() => setViewingUser(null)}>
+              Fechar
+            </button>
+          }
+        >
+          <p>
+            <strong>ID:</strong> {viewingUser.id}
+          </p>
+          <p>
+            <strong>Usuário:</strong> {viewingUser.username}
+          </p>
+          <p>
+            <strong>Papel:</strong> {viewingUser.role}
+          </p>
+          <p>
+            <strong>Criado em:</strong> {viewingUser.created_at}
+          </p>
         </Modal>
       )}
     </div>
