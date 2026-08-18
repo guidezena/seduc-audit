@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMe, registerUser } from '../api.js';
+import { UserIcon, LockIcon, ShieldIcon } from '../icons.jsx';
 
 export default function AdminRegisterPage() {
   const [checking, setChecking] = useState(true);
@@ -50,46 +51,110 @@ export default function AdminRegisterPage() {
     }
   }
 
-  if (checking) return <p>Carregando...</p>;
+  if (checking) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <img className="auth-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
+          <p className="auth-loading">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
   if (!authorized) return null;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Cadastrar usuário</h1>
-      {error && <p role="alert">{error}</p>}
-      {success && <p>{success}</p>}
-      <label>
-        Usuário
-        <input value={username} onChange={(e) => setUsername(e.target.value)} required />
-      </label>
-      <label>
-        Senha
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-        />
-      </label>
-      <label>
-        Confirmar senha
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          minLength={8}
-        />
-      </label>
-      <label>
-        Papel
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="user">user</option>
-          <option value="admin">admin</option>
-        </select>
-      </label>
-      <button type="submit">Cadastrar</button>
-    </form>
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleSubmit}>
+        <img className="auth-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
+        <div className="auth-brand">
+          <span className="auth-brand-top">SEDUC</span>
+          <span className="auth-brand-bottom">AUDIT</span>
+        </div>
+        <div className="auth-panel">
+          <h1 className="auth-title">Cadastrar usuário</h1>
+          {error && (
+            <p className="auth-alert" role="alert">
+              {error}
+            </p>
+          )}
+          {success && <p className="auth-success">{success}</p>}
+          <div className="auth-fields">
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="register-username">
+                Usuário
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <UserIcon />
+                </span>
+                <input
+                  id="register-username"
+                  placeholder="Usuário"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="register-password">
+                Senha
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <LockIcon />
+                </span>
+                <input
+                  id="register-password"
+                  type="password"
+                  placeholder="Senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+            </div>
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="register-confirm-password">
+                Confirmar senha
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <LockIcon />
+                </span>
+                <input
+                  id="register-confirm-password"
+                  type="password"
+                  placeholder="Confirmar senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+            </div>
+            <div className="auth-field">
+              <label className="sr-only" htmlFor="register-role">
+                Papel
+              </label>
+              <div className="auth-field-row">
+                <span className="auth-field-icon" aria-hidden="true">
+                  <ShieldIcon />
+                </span>
+                <select id="register-role" value={role} onChange={(e) => setRole(e.target.value)}>
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button className="auth-button" type="submit">
+            Cadastrar
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
