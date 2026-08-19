@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 const LETTERS = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 const DROPDOWN_MARGIN = 16;
-const MIN_DROPDOWN_HEIGHT = 140;
 
 function normalize(text) {
   return text
@@ -37,7 +36,7 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
     if (!rootRef.current) return;
     const rect = rootRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom - DROPDOWN_MARGIN;
-    setMaxHeight(Math.max(MIN_DROPDOWN_HEIGHT, spaceBelow));
+    setMaxHeight(Math.max(0, spaceBelow));
   }
 
   useEffect(() => {
