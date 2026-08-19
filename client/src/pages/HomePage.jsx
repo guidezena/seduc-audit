@@ -51,7 +51,6 @@ export default function HomePage() {
               value={seguimento}
               onChange={setSeguimento}
               matchText={seguimentoMatchText}
-              showLetterBar
             />
             <span className="home-search-icon" aria-hidden="true">
               <SearchIcon />
