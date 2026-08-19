@@ -7,7 +7,6 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loggedInUser, setLoggedInUser] = useState(null);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -18,22 +17,11 @@ export default function LoginPage() {
       if (user.role === 'admin') {
         navigate('/admin/register');
       } else {
-        setLoggedInUser(user);
+        navigate('/home');
       }
     } catch (err) {
       setError(err.message);
     }
-  }
-
-  if (loggedInUser) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          <img className="auth-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
-          <p className="auth-message">Logado como {loggedInUser.username}.</p>
-        </div>
-      </div>
-    );
   }
 
   return (
