@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { SearchIcon } from '../icons.jsx';
+import Autocomplete from '../components/Autocomplete.jsx';
+import fornecedores from '../data/fornecedores.json';
+import segmentos from '../data/segmentos.json';
+
+const seguimentoOptions = Object.keys(segmentos);
 
 export default function HomePage() {
   const [fornecedor, setFornecedor] = useState('');
@@ -21,11 +26,11 @@ export default function HomePage() {
             Busca por Fornecedor
           </label>
           <div className="home-search-row">
-            <input
+            <Autocomplete
               id="search-fornecedor"
-              placeholder=""
+              options={fornecedores}
               value={fornecedor}
-              onChange={(e) => setFornecedor(e.target.value)}
+              onChange={setFornecedor}
             />
             <span className="home-search-icon" aria-hidden="true">
               <SearchIcon />
@@ -38,11 +43,11 @@ export default function HomePage() {
             Busca por Seguimento
           </label>
           <div className="home-search-row">
-            <input
+            <Autocomplete
               id="search-seguimento"
-              placeholder=""
+              options={seguimentoOptions}
               value={seguimento}
-              onChange={(e) => setSeguimento(e.target.value)}
+              onChange={setSeguimento}
             />
             <span className="home-search-icon" aria-hidden="true">
               <SearchIcon />
