@@ -1,12 +1,30 @@
 import { useMemo, useState } from 'react';
 import { SearchIcon } from '../icons.jsx';
 import Autocomplete from '../components/Autocomplete.jsx';
+import ColumnFilterPanel from '../components/ColumnFilterPanel.jsx';
 import fornecedores from '../data/fornecedores.json';
 import segmentos from '../data/segmentos.json';
 import contratos from '../data/contratos.json';
 
 const seguimentoOptions = Object.keys(segmentos);
 const seguimentoMatchText = (categoria) => [categoria, ...segmentos[categoria]].join(' ');
+
+function uniqueSorted(values) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+const uresOptions = uniqueSorted(contratos.map((c) => c.ures));
+const assuntoPlanejadoOptions = uniqueSorted(contratos.map((c) => c.assuntoPlanejado));
+const cnpjOptions = uniqueSorted(contratos.map((c) => c.cnpj));
+
+const COLUMN_FILTER_FIELDS = [
+  { key: 'ures', label: 'Unidade Gestora', options: uresOptions },
+  { key: 'assuntoPlanejado', label: 'Assunto Planejado', options: assuntoPlanejadoOptions },
+  { key: 'credor', label: 'Credor', options: fornecedores },
+  { key: 'cnpj', label: 'CNPJ', options: cnpjOptions },
+];
+
+const EMPTY_COLUMN_FILTERS = { ures: [], assuntoPlanejado: [], credor: [], cnpj: [] };
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (value) => currencyFormatter.format(value || 0);
@@ -53,6 +71,7 @@ export default function HomePage() {
   const [seguimento, setSeguimento] = useState('');
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
+  const [columnFilters, setColumnFilters] = useState(EMPTY_COLUMN_FILTERS);
 
   const isFornecedorSelected = fornecedores.includes(fornecedor);
   const isSeguimentoSelected = seguimentoOptions.includes(seguimento);
@@ -61,6 +80,7 @@ export default function HomePage() {
   function handleClearFilters() {
     setFornecedor('');
     setSeguimento('');
+    setColumnFilters(EMPTY_COLUMN_FILTERS);
     setPage(1);
   }
 
@@ -69,6 +89,7 @@ export default function HomePage() {
     if (fornecedores.includes(value)) {
       setSeguimento('');
     }
+    setColumnFilters(EMPTY_COLUMN_FILTERS);
     setPage(1);
   }
 
@@ -77,6 +98,12 @@ export default function HomePage() {
     if (seguimentoOptions.includes(value)) {
       setFornecedor('');
     }
+    setColumnFilters(EMPTY_COLUMN_FILTERS);
+    setPage(1);
+  }
+
+  function handleColumnFiltersChange(next) {
+    setColumnFilters(next);
     setPage(1);
   }
 
@@ -95,14 +122,26 @@ export default function HomePage() {
     });
   }, [fornecedor, seguimento, isFornecedorSelected, isSeguimentoSelected]);
 
-  const pageCount = results && pageSize !== 'all' ? Math.max(1, Math.ceil(results.length / pageSize)) : 1;
+  const filteredResults = useMemo(() => {
+    if (!results) return null;
+    const hasColumnFilters = COLUMN_FILTER_FIELDS.some((f) => columnFilters[f.key].length > 0);
+    if (!hasColumnFilters) return results;
+    return results.filter((contrato) =>
+      COLUMN_FILTER_FIELDS.every((f) => {
+        const selected = columnFilters[f.key];
+        return selected.length === 0 || selected.includes(contrato[f.key]);
+      })
+    );
+  }, [results, columnFilters]);
+
+  const pageCount = filteredResults && pageSize !== 'all' ? Math.max(1, Math.ceil(filteredResults.length / pageSize)) : 1;
   const currentPage = Math.min(page, pageCount);
   const pageStart = pageSize === 'all' ? 0 : (currentPage - 1) * pageSize;
-  const pageEnd = pageSize === 'all' ? results?.length ?? 0 : Math.min(pageStart + pageSize, results?.length ?? 0);
+  const pageEnd = pageSize === 'all' ? filteredResults?.length ?? 0 : Math.min(pageStart + pageSize, filteredResults?.length ?? 0);
   const pageResults = useMemo(() => {
-    if (!results) return [];
-    return pageSize === 'all' ? results : results.slice(pageStart, pageStart + pageSize);
-  }, [results, pageSize, pageStart]);
+    if (!filteredResults) return [];
+    return pageSize === 'all' ? filteredResults : filteredResults.slice(pageStart, pageStart + pageSize);
+  }, [filteredResults, pageSize, pageStart]);
 
   return (
     <div className={`home-page${results ? ' home-page--results' : ''}`}>
@@ -158,11 +197,16 @@ export default function HomePage() {
         </button>
       )}
 
-      {results && (
+      {filteredResults && (
         <section className="home-results">
           <div className="home-results-header">
-            <h2 className="home-results-title">{results.length} contrato{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}</h2>
-            {results.length > 0 && (
+            <div className="home-results-title-group">
+              <ColumnFilterPanel fields={COLUMN_FILTER_FIELDS} value={columnFilters} onChange={handleColumnFiltersChange} />
+              <h2 className="home-results-title">
+                {filteredResults.length} contrato{filteredResults.length === 1 ? '' : 's'} encontrado{filteredResults.length === 1 ? '' : 's'}
+              </h2>
+            </div>
+            {filteredResults.length > 0 && (
               <label className="home-page-size">
                 Exibir
                 <select value={pageSize} onChange={(e) => handlePageSizeChange(e.target.value)}>
@@ -176,7 +220,7 @@ export default function HomePage() {
               </label>
             )}
           </div>
-          {results.length === 0 ? (
+          {filteredResults.length === 0 ? (
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
             <>
@@ -211,7 +255,7 @@ export default function HomePage() {
                     Anterior
                   </button>
                   <span className="home-pagination-info">
-                    {pageStart + 1}–{pageEnd} de {results.length} · página {currentPage} de {pageCount}
+                    {pageStart + 1}–{pageEnd} de {filteredResults.length} · página {currentPage} de {pageCount}
                   </span>
                   <button
                     type="button"
