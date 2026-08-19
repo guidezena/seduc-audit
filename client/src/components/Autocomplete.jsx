@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const MAX_RESULTS = 50;
-
 function normalize(text) {
   return text
     .normalize('NFD')
@@ -26,8 +24,7 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
 
   const matches = useMemo(() => {
     const query = normalize(value.trim());
-    const filtered = query ? options.filter((option) => normalize(option).includes(query)) : options;
-    return filtered.slice(0, MAX_RESULTS);
+    return query ? options.filter((option) => normalize(option).includes(query)) : options;
   }, [options, value]);
 
   function selectOption(option) {
