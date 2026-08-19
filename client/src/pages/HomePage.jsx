@@ -35,6 +35,12 @@ export default function HomePage() {
 
   const isFornecedorSelected = fornecedores.includes(fornecedor);
   const isSeguimentoSelected = seguimentoOptions.includes(seguimento);
+  const hasFilters = fornecedor !== '' || seguimento !== '';
+
+  function handleClearFilters() {
+    setFornecedor('');
+    setSeguimento('');
+  }
 
   const results = useMemo(() => {
     if (!isFornecedorSelected && !isSeguimentoSelected) return null;
@@ -93,6 +99,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {hasFilters && (
+        <button type="button" className="home-clear-button" onClick={handleClearFilters}>
+          Limpar filtros
+        </button>
+      )}
 
       {results && (
         <section className="home-results">
