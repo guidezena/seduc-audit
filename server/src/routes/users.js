@@ -41,4 +41,91 @@ router.post('/register', requireAuth, requireAdmin, (req, res) => {
   }
 });
 
+router.get('/users', requireAuth, requireAdmin, (req, res) => {
+  const users = db.prepare('SELECT id, username, role, created_at FROM users ORDER BY id ASC').all();
+  res.json(users);
+});
+
+router.patch('/users/:id', requireAuth, requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const { username, role, password } = req.body || {};
+  if (username === undefined && role === undefined && password === undefined) {
+    return res.status(400).json({ error: 'At least one field is required' });
+  }
+
+  if (username !== undefined) {
+    if (typeof username !== 'string' || !username) {
+      return res.status(400).json({ error: 'Username must be a non-empty string' });
+    }
+    const collision = db
+      .prepare('SELECT id FROM users WHERE username = ? AND id != ?')
+      .get(username, id);
+    if (collision) {
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+  }
+
+  if (role !== undefined) {
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({ error: 'Role must be "admin" or "user"' });
+    }
+    if (existing.role === 'admin' && role === 'user') {
+      const adminCount = db
+        .prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'")
+        .get().count;
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: 'Cannot demote the last remaining admin' });
+      }
+    }
+  }
+
+  if (password !== undefined) {
+    if (typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+  }
+
+  const nextUsername = username !== undefined ? username : existing.username;
+  const nextRole = role !== undefined ? role : existing.role;
+  const nextPasswordHash = password !== undefined ? hashPassword(password) : existing.password_hash;
+
+  db.prepare('UPDATE users SET username = ?, role = ?, password_hash = ? WHERE id = ?').run(
+    nextUsername,
+    nextRole,
+    nextPasswordHash,
+    id
+  );
+
+  res.json({ id, username: nextUsername, role: nextRole });
+});
+
+router.delete('/users/:id', requireAuth, requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (id === req.user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own account' });
+  }
+
+  if (existing.role === 'admin') {
+    const adminCount = db
+      .prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'")
+      .get().count;
+    if (adminCount <= 1) {
+      return res.status(400).json({ error: 'Cannot delete the last remaining admin' });
+    }
+  }
+
+  db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
 export default router;
