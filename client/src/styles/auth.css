@@ -285,7 +285,7 @@ body,
   margin: 0;
   font-family: 'Poppins', 'Roboto', sans-serif;
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   color: var(--g-text);
 }
 
@@ -558,16 +558,17 @@ body,
 }
 
 .users-table--compact table {
-  font-size: 0.78rem;
-}
-
-.users-table--compact th {
-  padding: 0.4rem 0.5rem;
   font-size: 0.68rem;
 }
 
+.users-table--compact th {
+  padding: 0.3rem 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+}
+
 .users-table--compact td {
-  padding: 0.4rem 0.5rem;
+  padding: 0.3rem 0.4rem;
 }
 
 .users-table .row-actions {
