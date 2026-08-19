@@ -42,6 +42,20 @@ export default function HomePage() {
     setSeguimento('');
   }
 
+  function handleFornecedorChange(value) {
+    setFornecedor(value);
+    if (fornecedores.includes(value)) {
+      setSeguimento('');
+    }
+  }
+
+  function handleSeguimentoChange(value) {
+    setSeguimento(value);
+    if (seguimentoOptions.includes(value)) {
+      setFornecedor('');
+    }
+  }
+
   const results = useMemo(() => {
     if (!isFornecedorSelected && !isSeguimentoSelected) return null;
     const assuntosDoSegmento = isSeguimentoSelected ? new Set(segmentos[seguimento]) : null;
@@ -72,7 +86,7 @@ export default function HomePage() {
               id="search-fornecedor"
               options={fornecedores}
               value={fornecedor}
-              onChange={setFornecedor}
+              onChange={handleFornecedorChange}
               showLetterBar
             />
             <span className="home-search-icon" aria-hidden="true">
@@ -90,7 +104,7 @@ export default function HomePage() {
               id="search-seguimento"
               options={seguimentoOptions}
               value={seguimento}
-              onChange={setSeguimento}
+              onChange={handleSeguimentoChange}
               matchText={seguimentoMatchText}
             />
             <span className="home-search-icon" aria-hidden="true">
