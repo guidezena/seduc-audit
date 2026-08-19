@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+const LETTERS = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const DROPDOWN_MARGIN = 16;
+const MIN_DROPDOWN_HEIGHT = 140;
+const FLIP_THRESHOLD = 200;
+
 function normalize(text) {
   return text
     .normalize('NFD')
@@ -7,9 +12,16 @@ function normalize(text) {
     .toLowerCase();
 }
 
-export default function Autocomplete({ id, options, value, onChange, placeholder, matchText = (option) => option }) {
+function firstLetterBucket(text) {
+  const char = normalize(text).trim()[0] || '';
+  return /[a-z]/.test(char) ? char.toUpperCase() : '#';
+}
+
+export default function Autocomplete({ id, options, value, onChange, placeholder, matchText = (option) => option, showLetterBar = false }) {
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
+  const [letterFilter, setLetterFilter] = useState(null);
+  const [layout, setLayout] = useState({ maxHeight: 280, openUpward: false });
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -22,10 +34,37 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const matches = useMemo(() => {
+  function recalculateLayout() {
+    if (!rootRef.current) return;
+    const rect = rootRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom - DROPDOWN_MARGIN;
+    const spaceAbove = rect.top - DROPDOWN_MARGIN;
+    const openUpward = spaceBelow < FLIP_THRESHOLD && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(MIN_DROPDOWN_HEIGHT, openUpward ? spaceAbove : spaceBelow);
+    setLayout({ maxHeight, openUpward });
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    recalculateLayout();
+    window.addEventListener('resize', recalculateLayout);
+    return () => window.removeEventListener('resize', recalculateLayout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const matchesByQuery = useMemo(() => {
     const query = normalize(value.trim());
     return query ? options.filter((option) => normalize(matchText(option)).includes(query)) : options;
   }, [options, value, matchText]);
+
+  const availableLetters = useMemo(() => {
+    return new Set(matchesByQuery.map((option) => firstLetterBucket(option)));
+  }, [matchesByQuery]);
+
+  const matches = useMemo(() => {
+    if (!letterFilter) return matchesByQuery;
+    return matchesByQuery.filter((option) => firstLetterBucket(option) === letterFilter);
+  }, [matchesByQuery, letterFilter]);
 
   function selectOption(option) {
     onChange(option);
@@ -72,27 +111,59 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
           onChange(e.target.value);
           setOpen(true);
           setHighlighted(-1);
+          setLetterFilter(null);
         }}
         onKeyDown={handleKeyDown}
       />
-      {open && matches.length > 0 && (
-        <ul className="autocomplete-list" role="listbox">
-          {matches.map((option, i) => (
-            <li
-              key={option}
-              role="option"
-              aria-selected={i === highlighted}
-              className={`autocomplete-option${i === highlighted ? ' is-highlighted' : ''}`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                selectOption(option);
-              }}
-              onMouseEnter={() => setHighlighted(i)}
-            >
-              {option}
-            </li>
-          ))}
-        </ul>
+      {open && (matches.length > 0 || showLetterBar) && (
+        <div
+          className={`autocomplete-panel${layout.openUpward ? ' autocomplete-panel--up' : ''}`}
+          style={{ maxHeight: layout.maxHeight }}
+        >
+          {showLetterBar && (
+            <div className="autocomplete-letterbar" role="tablist" aria-label="Filtrar por letra">
+              {LETTERS.map((letter) => {
+                const available = availableLetters.has(letter);
+                const active = letterFilter === letter;
+                return (
+                  <button
+                    key={letter}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    disabled={!available}
+                    className={`autocomplete-letter${active ? ' is-active' : ''}`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setLetterFilter(active ? null : letter);
+                      setHighlighted(-1);
+                    }}
+                  >
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <ul className="autocomplete-list" role="listbox">
+            {matches.map((option, i) => (
+              <li
+                key={option}
+                role="option"
+                aria-selected={i === highlighted}
+                className={`autocomplete-option${i === highlighted ? ' is-highlighted' : ''}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  selectOption(option);
+                }}
+                onMouseEnter={() => setHighlighted(i)}
+              >
+                {option}
+              </li>
+            ))}
+            {matches.length === 0 && <li className="autocomplete-empty">Nenhum resultado para esta letra.</li>}
+          </ul>
+        </div>
       )}
     </div>
   );
