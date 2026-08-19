@@ -75,7 +75,8 @@ export default function HomePage() {
 
   const isFornecedorSelected = fornecedores.includes(fornecedor);
   const isSeguimentoSelected = seguimentoOptions.includes(seguimento);
-  const hasFilters = fornecedor !== '' || seguimento !== '';
+  const hasColumnFilters = COLUMN_FILTER_FIELDS.some((f) => columnFilters[f.key].length > 0);
+  const hasFilters = fornecedor !== '' || seguimento !== '' || hasColumnFilters;
 
   function handleClearFilters() {
     setFornecedor('');
@@ -88,8 +89,8 @@ export default function HomePage() {
     setFornecedor(value);
     if (fornecedores.includes(value)) {
       setSeguimento('');
+      setColumnFilters(EMPTY_COLUMN_FILTERS);
     }
-    setColumnFilters(EMPTY_COLUMN_FILTERS);
     setPage(1);
   }
 
@@ -97,13 +98,17 @@ export default function HomePage() {
     setSeguimento(value);
     if (seguimentoOptions.includes(value)) {
       setFornecedor('');
+      setColumnFilters(EMPTY_COLUMN_FILTERS);
     }
-    setColumnFilters(EMPTY_COLUMN_FILTERS);
     setPage(1);
   }
 
   function handleColumnFiltersChange(next) {
     setColumnFilters(next);
+    if (COLUMN_FILTER_FIELDS.some((f) => next[f.key].length > 0)) {
+      setFornecedor('');
+      setSeguimento('');
+    }
     setPage(1);
   }
 
@@ -113,6 +118,14 @@ export default function HomePage() {
   }
 
   const results = useMemo(() => {
+    if (hasColumnFilters) {
+      return contratos.filter((contrato) =>
+        COLUMN_FILTER_FIELDS.every((f) => {
+          const selected = columnFilters[f.key];
+          return selected.length === 0 || selected.includes(contrato[f.key]);
+        })
+      );
+    }
     if (!isFornecedorSelected && !isSeguimentoSelected) return null;
     const assuntosDoSegmento = isSeguimentoSelected ? new Set(segmentos[seguimento]) : null;
     return contratos.filter((contrato) => {
@@ -120,28 +133,16 @@ export default function HomePage() {
       if (assuntosDoSegmento && !assuntosDoSegmento.has(contrato.assuntoPlanejado)) return false;
       return true;
     });
-  }, [fornecedor, seguimento, isFornecedorSelected, isSeguimentoSelected]);
+  }, [fornecedor, seguimento, isFornecedorSelected, isSeguimentoSelected, hasColumnFilters, columnFilters]);
 
-  const filteredResults = useMemo(() => {
-    if (!results) return null;
-    const hasColumnFilters = COLUMN_FILTER_FIELDS.some((f) => columnFilters[f.key].length > 0);
-    if (!hasColumnFilters) return results;
-    return results.filter((contrato) =>
-      COLUMN_FILTER_FIELDS.every((f) => {
-        const selected = columnFilters[f.key];
-        return selected.length === 0 || selected.includes(contrato[f.key]);
-      })
-    );
-  }, [results, columnFilters]);
-
-  const pageCount = filteredResults && pageSize !== 'all' ? Math.max(1, Math.ceil(filteredResults.length / pageSize)) : 1;
+  const pageCount = results && pageSize !== 'all' ? Math.max(1, Math.ceil(results.length / pageSize)) : 1;
   const currentPage = Math.min(page, pageCount);
   const pageStart = pageSize === 'all' ? 0 : (currentPage - 1) * pageSize;
-  const pageEnd = pageSize === 'all' ? filteredResults?.length ?? 0 : Math.min(pageStart + pageSize, filteredResults?.length ?? 0);
+  const pageEnd = pageSize === 'all' ? results?.length ?? 0 : Math.min(pageStart + pageSize, results?.length ?? 0);
   const pageResults = useMemo(() => {
-    if (!filteredResults) return [];
-    return pageSize === 'all' ? filteredResults : filteredResults.slice(pageStart, pageStart + pageSize);
-  }, [filteredResults, pageSize, pageStart]);
+    if (!results) return [];
+    return pageSize === 'all' ? results : results.slice(pageStart, pageStart + pageSize);
+  }, [results, pageSize, pageStart]);
 
   return (
     <div className={`home-page${results ? ' home-page--results' : ''}`}>
@@ -191,22 +192,22 @@ export default function HomePage() {
         </div>
       </div>
 
-      {hasFilters && (
-        <button type="button" className="home-clear-button" onClick={handleClearFilters}>
-          Limpar filtros
-        </button>
-      )}
+      <div className="home-actions">
+        <ColumnFilterPanel fields={COLUMN_FILTER_FIELDS} value={columnFilters} onChange={handleColumnFiltersChange} />
+        {hasFilters && (
+          <button type="button" className="home-clear-button" onClick={handleClearFilters}>
+            Limpar filtros
+          </button>
+        )}
+      </div>
 
-      {filteredResults && (
+      {results && (
         <section className="home-results">
           <div className="home-results-header">
-            <div className="home-results-title-group">
-              <ColumnFilterPanel fields={COLUMN_FILTER_FIELDS} value={columnFilters} onChange={handleColumnFiltersChange} />
-              <h2 className="home-results-title">
-                {filteredResults.length} contrato{filteredResults.length === 1 ? '' : 's'} encontrado{filteredResults.length === 1 ? '' : 's'}
-              </h2>
-            </div>
-            {filteredResults.length > 0 && (
+            <h2 className="home-results-title">
+              {results.length} contrato{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}
+            </h2>
+            {results.length > 0 && (
               <label className="home-page-size">
                 Exibir
                 <select value={pageSize} onChange={(e) => handlePageSizeChange(e.target.value)}>
@@ -220,7 +221,7 @@ export default function HomePage() {
               </label>
             )}
           </div>
-          {filteredResults.length === 0 ? (
+          {results.length === 0 ? (
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
             <>
@@ -255,7 +256,7 @@ export default function HomePage() {
                     Anterior
                   </button>
                   <span className="home-pagination-info">
-                    {pageStart + 1}–{pageEnd} de {filteredResults.length} · página {currentPage} de {pageCount}
+                    {pageStart + 1}–{pageEnd} de {results.length} · página {currentPage} de {pageCount}
                   </span>
                   <button
                     type="button"
