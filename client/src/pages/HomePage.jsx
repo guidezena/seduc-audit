@@ -112,7 +112,7 @@ export default function HomePage() {
           {results.length === 0 ? (
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
-            <div className="users-table">
+            <div className="users-table users-table--compact">
               <table>
                 <thead>
                   <tr>

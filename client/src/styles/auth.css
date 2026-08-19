@@ -557,6 +557,19 @@ body,
   background: var(--g-bg);
 }
 
+.users-table--compact table {
+  font-size: 0.78rem;
+}
+
+.users-table--compact th {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.68rem;
+}
+
+.users-table--compact td {
+  padding: 0.4rem 0.5rem;
+}
+
 .users-table .row-actions {
   display: flex;
   gap: 0.4rem;
