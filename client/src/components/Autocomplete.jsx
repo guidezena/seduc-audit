@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 const LETTERS = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 const DROPDOWN_MARGIN = 16;
 const MIN_DROPDOWN_HEIGHT = 140;
-const FLIP_THRESHOLD = 200;
 
 function normalize(text) {
   return text
@@ -21,7 +20,7 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
   const [letterFilter, setLetterFilter] = useState(null);
-  const [layout, setLayout] = useState({ maxHeight: 280, openUpward: false });
+  const [maxHeight, setMaxHeight] = useState(280);
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -38,10 +37,7 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
     if (!rootRef.current) return;
     const rect = rootRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom - DROPDOWN_MARGIN;
-    const spaceAbove = rect.top - DROPDOWN_MARGIN;
-    const openUpward = spaceBelow < FLIP_THRESHOLD && spaceAbove > spaceBelow;
-    const maxHeight = Math.max(MIN_DROPDOWN_HEIGHT, openUpward ? spaceAbove : spaceBelow);
-    setLayout({ maxHeight, openUpward });
+    setMaxHeight(Math.max(MIN_DROPDOWN_HEIGHT, spaceBelow));
   }
 
   useEffect(() => {
@@ -116,10 +112,7 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
         onKeyDown={handleKeyDown}
       />
       {open && (matches.length > 0 || showLetterBar) && (
-        <div
-          className={`autocomplete-panel${layout.openUpward ? ' autocomplete-panel--up' : ''}`}
-          style={{ maxHeight: layout.maxHeight }}
-        >
+        <div className="autocomplete-panel" style={{ maxHeight }}>
           {showLetterBar && (
             <div className="autocomplete-letterbar" role="tablist" aria-label="Filtrar por letra">
               {LETTERS.map((letter) => {

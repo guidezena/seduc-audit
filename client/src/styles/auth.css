@@ -392,11 +392,6 @@ body,
   overflow: hidden;
 }
 
-.autocomplete-panel--up {
-  top: auto;
-  bottom: calc(100% + 0.4rem);
-}
-
 .autocomplete-letterbar {
   display: flex;
   gap: 0.25rem;
