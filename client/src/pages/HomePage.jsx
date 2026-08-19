@@ -29,9 +29,13 @@ const COLUMNS = [
   { key: 'dataCarga', label: 'Data da Carga' },
 ];
 
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 'all'];
+
 export default function HomePage() {
   const [fornecedor, setFornecedor] = useState('');
   const [seguimento, setSeguimento] = useState('');
+  const [pageSize, setPageSize] = useState(25);
+  const [page, setPage] = useState(1);
 
   const isFornecedorSelected = fornecedores.includes(fornecedor);
   const isSeguimentoSelected = seguimentoOptions.includes(seguimento);
@@ -40,6 +44,7 @@ export default function HomePage() {
   function handleClearFilters() {
     setFornecedor('');
     setSeguimento('');
+    setPage(1);
   }
 
   function handleFornecedorChange(value) {
@@ -47,6 +52,7 @@ export default function HomePage() {
     if (fornecedores.includes(value)) {
       setSeguimento('');
     }
+    setPage(1);
   }
 
   function handleSeguimentoChange(value) {
@@ -54,6 +60,12 @@ export default function HomePage() {
     if (seguimentoOptions.includes(value)) {
       setFornecedor('');
     }
+    setPage(1);
+  }
+
+  function handlePageSizeChange(value) {
+    setPageSize(value === 'all' ? 'all' : Number(value));
+    setPage(1);
   }
 
   const results = useMemo(() => {
@@ -65,6 +77,15 @@ export default function HomePage() {
       return true;
     });
   }, [fornecedor, seguimento, isFornecedorSelected, isSeguimentoSelected]);
+
+  const pageCount = results && pageSize !== 'all' ? Math.max(1, Math.ceil(results.length / pageSize)) : 1;
+  const currentPage = Math.min(page, pageCount);
+  const pageStart = pageSize === 'all' ? 0 : (currentPage - 1) * pageSize;
+  const pageEnd = pageSize === 'all' ? results?.length ?? 0 : Math.min(pageStart + pageSize, results?.length ?? 0);
+  const pageResults = useMemo(() => {
+    if (!results) return [];
+    return pageSize === 'all' ? results : results.slice(pageStart, pageStart + pageSize);
+  }, [results, pageSize, pageStart]);
 
   return (
     <div className={`home-page${results ? ' home-page--results' : ''}`}>
@@ -122,30 +143,70 @@ export default function HomePage() {
 
       {results && (
         <section className="home-results">
-          <h2 className="home-results-title">{results.length} contrato{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}</h2>
+          <div className="home-results-header">
+            <h2 className="home-results-title">{results.length} contrato{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}</h2>
+            {results.length > 0 && (
+              <label className="home-page-size">
+                Exibir
+                <select value={pageSize} onChange={(e) => handlePageSizeChange(e.target.value)}>
+                  {PAGE_SIZE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option === 'all' ? 'Todos' : option}
+                    </option>
+                  ))}
+                </select>
+                por página
+              </label>
+            )}
+          </div>
           {results.length === 0 ? (
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
-            <div className="users-table users-table--compact">
-              <table>
-                <thead>
-                  <tr>
-                    {COLUMNS.map((col) => (
-                      <th key={col.key}>{col.label}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.map((contrato, i) => (
-                    <tr key={i}>
+            <>
+              <div className="users-table users-table--compact">
+                <table>
+                  <thead>
+                    <tr>
                       {COLUMNS.map((col) => (
-                        <td key={col.key}>{col.format ? col.format(contrato[col.key]) : contrato[col.key]}</td>
+                        <th key={col.key}>{col.label}</th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {pageResults.map((contrato, i) => (
+                      <tr key={pageStart + i}>
+                        {COLUMNS.map((col) => (
+                          <td key={col.key}>{col.format ? col.format(contrato[col.key]) : contrato[col.key]}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {pageSize !== 'all' && pageCount > 1 && (
+                <div className="home-pagination">
+                  <button
+                    type="button"
+                    className="home-pagination-button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </button>
+                  <span className="home-pagination-info">
+                    {pageStart + 1}–{pageEnd} de {results.length} · página {currentPage} de {pageCount}
+                  </span>
+                  <button
+                    type="button"
+                    className="home-pagination-button"
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    disabled={currentPage === pageCount}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
