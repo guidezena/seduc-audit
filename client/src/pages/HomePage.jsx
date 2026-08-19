@@ -31,6 +31,23 @@ const COLUMNS = [
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 'all'];
 
+function getPageNumbers(current, total) {
+  const delta = 2;
+  const range = [];
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+    range.push(i);
+  }
+  if (range[0] > 1) {
+    if (range[0] > 2) range.unshift('...');
+    range.unshift(1);
+  }
+  if (range[range.length - 1] < total) {
+    if (range[range.length - 1] < total - 1) range.push('...');
+    range.push(total);
+  }
+  return range;
+}
+
 export default function HomePage() {
   const [fornecedor, setFornecedor] = useState('');
   const [seguimento, setSeguimento] = useState('');
@@ -204,6 +221,26 @@ export default function HomePage() {
                   >
                     Próxima
                   </button>
+                </div>
+              )}
+              {pageSize !== 'all' && pageCount > 1 && (
+                <div className="home-pagination-numbers">
+                  {getPageNumbers(currentPage, pageCount).map((item, i) =>
+                    item === '...' ? (
+                      <span key={`ellipsis-${i}`} className="home-pagination-ellipsis">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`home-pagination-page${item === currentPage ? ' is-active' : ''}`}
+                        onClick={() => setPage(item)}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </>

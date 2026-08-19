@@ -357,6 +357,45 @@ body,
   cursor: not-allowed;
 }
 
+.home-pagination-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.home-pagination-page {
+  min-width: 1.9rem;
+  padding: 0.3rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--g-border);
+  border-radius: 6px;
+  color: var(--g-text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.home-pagination-page:hover {
+  background: var(--g-bg);
+  border-color: var(--g-blue);
+}
+
+.home-pagination-page.is-active {
+  background: var(--g-blue);
+  border-color: var(--g-blue);
+  color: #ffffff;
+}
+
+.home-pagination-ellipsis {
+  padding: 0 0.2rem;
+  color: var(--g-text-dim);
+  font-size: 0.78rem;
+}
+
 .home-clear-button {
   align-self: center;
   padding: 0.5rem 1.1rem;
