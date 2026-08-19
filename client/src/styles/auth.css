@@ -269,6 +269,32 @@ body,
   color: var(--g-text);
 }
 
+.home-page--results {
+  justify-content: flex-start;
+}
+
+.home-results {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-results-title {
+  margin: 0;
+  font-family: 'Poppins', 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--g-text);
+}
+
+.home-results-empty {
+  margin: 0;
+  color: var(--g-text-dim);
+  font-size: 0.9rem;
+}
+
 .home-header {
   display: flex;
   align-items: center;
