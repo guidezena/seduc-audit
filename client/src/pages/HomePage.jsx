@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { SearchIcon } from '../icons.jsx';
+import { SearchIcon, WalletIcon, CheckCircleIcon, PercentIcon, ClockAlertIcon } from '../icons.jsx';
 import Autocomplete from '../components/Autocomplete.jsx';
 import ColumnFilterPanel from '../components/ColumnFilterPanel.jsx';
 import fornecedores from '../data/fornecedores.json';
@@ -45,6 +45,14 @@ const COLUMNS = [
   { key: 'valorPendente', label: 'Valor Pendente Pagamento', format: formatCurrency },
   { key: 'percPendente', label: '% Pendente', format: formatPercent },
   { key: 'dataCarga', label: 'Data da Carga' },
+];
+
+const SUMMARY_CARDS = [
+  { key: 'totalVigencia', label: 'Valor Total Vigência', icon: WalletIcon, tone: 'blue', format: formatCurrency },
+  { key: 'totalPago', label: 'Valor Total Pago', icon: CheckCircleIcon, tone: 'green', format: formatCurrency },
+  { key: 'mediaPercPago', label: '% Pago (média)', icon: PercentIcon, tone: 'green', format: formatPercent },
+  { key: 'totalPendente', label: 'Valor Pendente Pagamento', icon: ClockAlertIcon, tone: 'red', format: formatCurrency },
+  { key: 'mediaPercPendente', label: '% Pendente (média)', icon: PercentIcon, tone: 'red', format: formatPercent },
 ];
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 'all'];
@@ -144,6 +152,19 @@ export default function HomePage() {
     return pageSize === 'all' ? results : results.slice(pageStart, pageStart + pageSize);
   }, [results, pageSize, pageStart]);
 
+  const summary = useMemo(() => {
+    if (!results || results.length === 0) return null;
+    const n = results.length;
+    const sum = (key) => results.reduce((total, c) => total + (c[key] || 0), 0);
+    return {
+      totalVigencia: sum('valorTotalVigencia'),
+      totalPago: sum('valorTotalPago'),
+      totalPendente: sum('valorPendente'),
+      mediaPercPago: sum('percPago') / n,
+      mediaPercPendente: sum('percPendente') / n,
+    };
+  }, [results]);
+
   return (
     <div className={`home-page${results ? ' home-page--results' : ''}`}>
       <header className="home-header">
@@ -225,6 +246,22 @@ export default function HomePage() {
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
             <>
+              <div className="home-summary">
+                {SUMMARY_CARDS.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.key} className={`home-summary-card home-summary-card--${card.tone}`}>
+                      <span className="home-summary-icon" aria-hidden="true">
+                        <Icon />
+                      </span>
+                      <div className="home-summary-text">
+                        <span className="home-summary-label">{card.label}</span>
+                        <span className="home-summary-value">{card.format(summary[card.key])}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <div className="users-table users-table--compact">
                 <table>
                   <thead>
