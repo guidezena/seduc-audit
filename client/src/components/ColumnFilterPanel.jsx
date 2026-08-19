@@ -24,6 +24,15 @@ export default function ColumnFilterPanel({ fields, value, onChange }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const allEmpty = fields.every((f) => value[f.key].length === 0);
+    if (allEmpty) {
+      setSearch('');
+      setActiveField(fields[0].key);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   const activeConfig = fields.find((f) => f.key === activeField);
   const activeSelected = value[activeField];
 
