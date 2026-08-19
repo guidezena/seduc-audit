@@ -40,6 +40,7 @@ export default function ColumnFilterPanel({ fields, value, onChange }) {
 
   function clearField(key) {
     onChange({ ...value, [key]: [] });
+    setSearch('');
   }
 
   function clearAll() {
@@ -48,6 +49,7 @@ export default function ColumnFilterPanel({ fields, value, onChange }) {
       cleared[f.key] = [];
     });
     onChange(cleared);
+    setSearch('');
   }
 
   const totalActive = fields.reduce((sum, f) => sum + value[f.key].length, 0);
@@ -66,45 +68,47 @@ export default function ColumnFilterPanel({ fields, value, onChange }) {
 
       {open && (
         <div className="column-filter-panel">
-          <div className="column-filter-tabs">
-            {fields.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                className={`column-filter-tab${f.key === activeField ? ' is-active' : ''}`}
-                onClick={() => {
-                  setActiveField(f.key);
-                  setSearch('');
-                }}
-              >
-                {f.label}
-                {value[f.key].length > 0 && <span className="column-filter-tab-count">{value[f.key].length}</span>}
-              </button>
-            ))}
-          </div>
-
-          <div className="column-filter-body">
-            <input
-              className="column-filter-search"
-              placeholder={`Buscar em ${activeConfig.label}...`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <ul className="column-filter-options">
-              {visibleOptions.map((option) => (
-                <li key={option}>
-                  <label className="column-filter-option">
-                    <input
-                      type="checkbox"
-                      checked={activeSelected.includes(option)}
-                      onChange={() => toggleOption(option)}
-                    />
-                    {option}
-                  </label>
-                </li>
+          <div className="column-filter-layout">
+            <div className="column-filter-tabs">
+              {fields.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  className={`column-filter-tab${f.key === activeField ? ' is-active' : ''}`}
+                  onClick={() => {
+                    setActiveField(f.key);
+                    setSearch('');
+                  }}
+                >
+                  {f.label}
+                  {value[f.key].length > 0 && <span className="column-filter-tab-count">{value[f.key].length}</span>}
+                </button>
               ))}
-              {visibleOptions.length === 0 && <li className="column-filter-empty">Nenhum valor encontrado.</li>}
-            </ul>
+            </div>
+
+            <div className="column-filter-body">
+              <input
+                className="column-filter-search"
+                placeholder={`Buscar em ${activeConfig.label}...`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <ul className="column-filter-options">
+                {visibleOptions.map((option) => (
+                  <li key={option}>
+                    <label className="column-filter-option">
+                      <input
+                        type="checkbox"
+                        checked={activeSelected.includes(option)}
+                        onChange={() => toggleOption(option)}
+                      />
+                      {option}
+                    </label>
+                  </li>
+                ))}
+                {visibleOptions.length === 0 && <li className="column-filter-empty">Nenhum valor encontrado.</li>}
+              </ul>
+            </div>
           </div>
 
           <div className="column-filter-footer">
