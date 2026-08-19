@@ -5,6 +5,7 @@ import fornecedores from '../data/fornecedores.json';
 import segmentos from '../data/segmentos.json';
 
 const seguimentoOptions = Object.keys(segmentos);
+const seguimentoMatchText = (categoria) => [categoria, ...segmentos[categoria]].join(' ');
 
 export default function HomePage() {
   const [fornecedor, setFornecedor] = useState('');
@@ -48,6 +49,7 @@ export default function HomePage() {
               options={seguimentoOptions}
               value={seguimento}
               onChange={setSeguimento}
+              matchText={seguimentoMatchText}
             />
             <span className="home-search-icon" aria-hidden="true">
               <SearchIcon />

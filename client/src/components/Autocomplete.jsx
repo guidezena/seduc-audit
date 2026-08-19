@@ -7,7 +7,7 @@ function normalize(text) {
     .toLowerCase();
 }
 
-export default function Autocomplete({ id, options, value, onChange, placeholder }) {
+export default function Autocomplete({ id, options, value, onChange, placeholder, matchText = (option) => option }) {
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
   const rootRef = useRef(null);
@@ -24,8 +24,8 @@ export default function Autocomplete({ id, options, value, onChange, placeholder
 
   const matches = useMemo(() => {
     const query = normalize(value.trim());
-    return query ? options.filter((option) => normalize(option).includes(query)) : options;
-  }, [options, value]);
+    return query ? options.filter((option) => normalize(matchText(option)).includes(query)) : options;
+  }, [options, value, matchText]);
 
   function selectOption(option) {
     onChange(option);
