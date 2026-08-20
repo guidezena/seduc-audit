@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchIcon, WalletIcon, CheckCircleIcon, PercentIcon, ClockAlertIcon } from '../icons.jsx';
 import Autocomplete from '../components/Autocomplete.jsx';
 import ColumnFilterPanel from '../components/ColumnFilterPanel.jsx';
+import DashboardCharts from '../components/DashboardCharts.jsx';
 import fornecedores from '../data/fornecedores.json';
 import segmentos from '../data/segmentos.json';
 import contratos from '../data/contratos.json';
@@ -286,6 +287,7 @@ export default function HomePage() {
                   );
                 })}
               </div>
+              <DashboardCharts results={displayResults} summary={summary} />
               <div className="users-table users-table--compact users-table--cards">
                 <table>
                   <thead>

@@ -379,6 +379,134 @@ body,
   color: var(--g-red);
 }
 
+.home-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.dash-bars-card {
+  grid-column: span 2;
+  min-width: 0;
+}
+
+@container (max-width: 599px) {
+  .dash-bars-card {
+    grid-column: span 1;
+  }
+}
+
+.dash-card {
+  background: var(--g-card);
+  border: 1px solid var(--g-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.dash-card-title {
+  margin: 0;
+  font-family: 'Poppins', 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--g-text);
+}
+
+.dash-meter-card {
+  justify-content: center;
+}
+
+.dash-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dash-meter-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--g-bg);
+  border: 1px solid var(--g-border);
+  overflow: hidden;
+}
+
+.dash-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.dash-meter-fill--green { background: var(--g-green); }
+.dash-meter-fill--yellow { background: var(--g-yellow); }
+.dash-meter-fill--red { background: var(--g-red); }
+
+.dash-meter-value {
+  font-family: 'Roboto Mono', 'Roboto', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.05rem;
+  min-width: 4.2em;
+  text-align: right;
+}
+
+.dash-meter-value--green { color: var(--g-green); }
+.dash-meter-value--yellow { color: #a35a00; }
+.dash-meter-value--red { color: var(--g-red); }
+
+.dash-meter-caption {
+  margin: 0;
+  color: var(--g-text-dim);
+  font-size: 0.75rem;
+}
+
+.dash-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-bar-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 160px) 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dash-bar-label {
+  font-size: 0.76rem;
+  color: var(--g-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-bar-track {
+  height: 16px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.dash-bar-fill {
+  height: 100%;
+  min-width: 3px;
+  background: var(--g-blue);
+  border-radius: 0 4px 4px 0;
+}
+
+.dash-bar-value {
+  font-family: 'Roboto Mono', 'Roboto', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.76rem;
+  color: var(--g-text);
+  white-space: nowrap;
+  text-align: right;
+}
+
 .home-page-size {
   display: flex;
   align-items: center;
