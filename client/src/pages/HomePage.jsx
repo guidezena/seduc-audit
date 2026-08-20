@@ -286,7 +286,7 @@ export default function HomePage() {
                   );
                 })}
               </div>
-              <div className="users-table users-table--compact">
+              <div className="users-table users-table--compact users-table--cards">
                 <table>
                   <thead>
                     <tr>

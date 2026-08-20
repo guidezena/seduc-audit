@@ -751,6 +751,49 @@ body,
   padding: 0.3rem 0.4rem;
 }
 
+.users-table--cards table {
+  border-collapse: separate;
+  border-spacing: 0 0.4rem;
+}
+
+.users-table--cards th {
+  border-bottom: none;
+  padding-bottom: 0.3rem;
+}
+
+.users-table--cards tbody tr {
+  background: var(--g-card);
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, 0.15),
+    0 1px 3px rgba(60, 64, 67, 0.1);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.users-table--cards tbody tr:hover {
+  background: var(--g-card);
+  box-shadow:
+    0 2px 4px rgba(60, 64, 67, 0.18),
+    0 4px 10px rgba(60, 64, 67, 0.14);
+  transform: translateY(-1px);
+}
+
+.users-table--cards td {
+  border-top: 1px solid var(--g-border);
+  border-bottom: 1px solid var(--g-border);
+}
+
+.users-table--cards td:first-child {
+  border-left: 1px solid var(--g-border);
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.users-table--cards td:last-child {
+  border-right: 1px solid var(--g-border);
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
 .users-table .row-actions {
   display: flex;
   gap: 0.4rem;
