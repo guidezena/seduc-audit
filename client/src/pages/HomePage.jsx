@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchIcon, WalletIcon, CheckCircleIcon, PercentIcon, ClockAlertIcon } from '../icons.jsx';
 import Autocomplete from '../components/Autocomplete.jsx';
 import ColumnFilterPanel from '../components/ColumnFilterPanel.jsx';
@@ -56,6 +56,7 @@ const SUMMARY_CARDS = [
 ];
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 'all'];
+const LOADING_DELAY_MS = 700;
 
 function getPageNumbers(current, total) {
   const delta = 2;
@@ -143,19 +144,37 @@ export default function HomePage() {
     });
   }, [fornecedor, seguimento, isFornecedorSelected, isSeguimentoSelected, hasColumnFilters, columnFilters]);
 
-  const pageCount = results && pageSize !== 'all' ? Math.max(1, Math.ceil(results.length / pageSize)) : 1;
+  const [isLoading, setIsLoading] = useState(false);
+  const [displayResults, setDisplayResults] = useState(results);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      setDisplayResults(results);
+      return;
+    }
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setDisplayResults(results);
+      setIsLoading(false);
+    }, LOADING_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [results]);
+
+  const pageCount = displayResults && pageSize !== 'all' ? Math.max(1, Math.ceil(displayResults.length / pageSize)) : 1;
   const currentPage = Math.min(page, pageCount);
   const pageStart = pageSize === 'all' ? 0 : (currentPage - 1) * pageSize;
-  const pageEnd = pageSize === 'all' ? results?.length ?? 0 : Math.min(pageStart + pageSize, results?.length ?? 0);
+  const pageEnd = pageSize === 'all' ? displayResults?.length ?? 0 : Math.min(pageStart + pageSize, displayResults?.length ?? 0);
   const pageResults = useMemo(() => {
-    if (!results) return [];
-    return pageSize === 'all' ? results : results.slice(pageStart, pageStart + pageSize);
-  }, [results, pageSize, pageStart]);
+    if (!displayResults) return [];
+    return pageSize === 'all' ? displayResults : displayResults.slice(pageStart, pageStart + pageSize);
+  }, [displayResults, pageSize, pageStart]);
 
   const summary = useMemo(() => {
-    if (!results || results.length === 0) return null;
-    const n = results.length;
-    const sum = (key) => results.reduce((total, c) => total + (c[key] || 0), 0);
+    if (!displayResults || displayResults.length === 0) return null;
+    const n = displayResults.length;
+    const sum = (key) => displayResults.reduce((total, c) => total + (c[key] || 0), 0);
     return {
       totalVigencia: sum('valorTotalVigencia'),
       totalPago: sum('valorTotalPago'),
@@ -163,10 +182,15 @@ export default function HomePage() {
       mediaPercPago: sum('percPago') / n,
       mediaPercPendente: sum('percPendente') / n,
     };
-  }, [results]);
+  }, [displayResults]);
 
   return (
-    <div className={`home-page${results ? ' home-page--results' : ''}`}>
+    <div className={`home-page${displayResults ? ' home-page--results' : ''}`}>
+      {isLoading && (
+        <div className="home-loading-overlay">
+          <div className="home-spinner" />
+        </div>
+      )}
       <header className="home-header">
         <img className="home-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
         <div className="home-brand">
@@ -222,13 +246,13 @@ export default function HomePage() {
         )}
       </div>
 
-      {results && (
+      {displayResults && (
         <section className="home-results">
           <div className="home-results-header">
             <h2 className="home-results-title">
-              {results.length} contrato{results.length === 1 ? '' : 's'} encontrado{results.length === 1 ? '' : 's'}
+              {displayResults.length} contrato{displayResults.length === 1 ? '' : 's'} encontrado{displayResults.length === 1 ? '' : 's'}
             </h2>
-            {results.length > 0 && (
+            {displayResults.length > 0 && (
               <label className="home-page-size">
                 Exibir
                 <select value={pageSize} onChange={(e) => handlePageSizeChange(e.target.value)}>
@@ -242,7 +266,7 @@ export default function HomePage() {
               </label>
             )}
           </div>
-          {results.length === 0 ? (
+          {displayResults.length === 0 ? (
             <p className="home-results-empty">Nenhum contrato encontrado para esse filtro.</p>
           ) : (
             <>
@@ -293,7 +317,7 @@ export default function HomePage() {
                     Anterior
                   </button>
                   <span className="home-pagination-info">
-                    {pageStart + 1}–{pageEnd} de {results.length} · página {currentPage} de {pageCount}
+                    {pageStart + 1}–{pageEnd} de {displayResults.length} · página {currentPage} de {pageCount}
                   </span>
                   <button
                     type="button"
