@@ -194,7 +194,7 @@ export default function HomePage() {
       <header className="home-header">
         <img className="home-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
         <div className="home-brand">
-          <span className="home-brand-top">Seduc</span>
+          <span className="home-brand-top">Seduc SP</span>
           <span className="home-brand-bottom">Audit</span>
         </div>
       </header>

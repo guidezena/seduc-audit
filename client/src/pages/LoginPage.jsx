@@ -29,7 +29,7 @@ export default function LoginPage() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <img className="auth-emblem" src="/brasao-sp.png" alt="Brasão do Estado de São Paulo" />
         <div className="auth-brand">
-          <span className="auth-brand-top">SEDUC</span>
+          <span className="auth-brand-top">SEDUC SP</span>
           <span className="auth-brand-bottom">AUDIT</span>
         </div>
         <div className="auth-panel">
