@@ -355,6 +355,11 @@ export default function HomePage() {
           )}
         </section>
       )}
+
+      <footer className="home-footer">
+        <hr className="home-footer-rule" />
+        <p className="home-footer-text">Projetado por Guilherme Dezena e Pedro Henrique</p>
+      </footer>
     </div>
   );
 }

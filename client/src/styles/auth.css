@@ -658,6 +658,26 @@ body,
   white-space: nowrap;
 }
 
+.home-footer {
+  width: 100%;
+  max-width: 640px;
+  margin-top: auto;
+  padding-top: 1.5rem;
+  text-align: center;
+}
+
+.home-footer-rule {
+  border: none;
+  border-top: 1px solid var(--g-blue);
+  margin: 0 0 0.85rem;
+}
+
+.home-footer-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--g-blue);
+}
+
 .home-searches {
   width: 100%;
   max-width: 440px;
