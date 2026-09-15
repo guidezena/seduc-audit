@@ -1,4 +1,4 @@
-# Auth App
+# Seduc Audit
 
 Login screen + admin-only user registration screen.
 

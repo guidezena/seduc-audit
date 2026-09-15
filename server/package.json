@@ -1,5 +1,5 @@
 {
-  "name": "auth-app-server",
+  "name": "seduc-audit-server",
   "private": true,
   "type": "module",
   "scripts": {

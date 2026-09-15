@@ -1,5 +1,5 @@
 {
-  "name": "auth-app-client",
+  "name": "seduc-audit-client",
   "private": true,
   "type": "module",
   "scripts": {
